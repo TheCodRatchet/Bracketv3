@@ -16,7 +16,7 @@
 <script src="bracket.js"></script>
 <script>
   async function loadData() {
-    const res = await fetch("Anime Tournament.csv");
+    const res = await fetch("anime.csv");
     const text = await res.text();
 
     const lines = text.split("\n").filter(l => l.trim().length > 0);
