@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Video Bracket</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Single Elimination Bracket</h1>
+
+<button id="resetBtn" class="reset-btn">Reset Tournament</button>
+
+<div id="bracket"></div>
+
+<script src="bracket.js"></script>
+<script>
+  async function loadData() {
+    const res = await fetch("data.json");
+    const entries = await res.json();
+    initBracket(entries);
+  }
+  loadData();
+</script>
+
+</body>
+</html>
