@@ -214,14 +214,36 @@ function toggleDetails(div, entry, arrow) {
   details.className = "entry-details";
 
   if (!entry.youtube) {
-    details.innerHTML = `<p>${entry.description || ""}</p><p>No video.</p>`;
-  } else {
-    const videoId = entry.youtube.split("v=")[1]?.split(/[&?]/)[0];
-    details.innerHTML = `
-      <p>${entry.description || ""}</p>
-      <iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>
-    `;
+  details.innerHTML = `<p>${entry.description || ""}</p><p>No video.</p>`;
+} else {
+
+  let embedUrl = "";
+
+  if (entry.youtube.includes("youtube.com/watch")) {
+    // Standard YouTube link
+    const id = entry.youtube.split("v=")[1]?.split(/[&?]/)[0];
+    embedUrl = `https://www.youtube.com/embed/${id}`;
+  } 
+  else if (entry.youtube.includes("youtu.be/")) {
+    // Short youtu.be link
+    const id = entry.youtube.split("youtu.be/")[1]?.split(/[?&]/)[0];
+    embedUrl = `https://www.youtube.com/embed/${id}`;
+  } 
+  else {
+    // Fallback: show raw link
+    embedUrl = null;
   }
+
+  details.innerHTML = `
+    <p>${entry.description || ""}</p>
+    ${
+      embedUrl
+        ? `<iframe src="${embedUrl}" allowfullscreen></iframe>`
+        : `<p><a href="${entry.youtube}" target="_blank">${entry.youtube}</a></p>`
+    }
+  `;
+}
+
 
   div.appendChild(details);
 }
