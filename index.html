@@ -16,42 +16,76 @@
 <script src="bracket.js"></script>
 <script>
   async function loadData() {
-    const res = await fetch("anime.csv");
-    const text = await res.text();
+  const res = await fetch("anime.csv");
+  const text = await res.text();
 
-    const lines = text.split("\n").filter(l => l.trim().length > 0);
+  const cleanText = text.replace(/�/g, "");
 
-    // Remove header row
-    lines.shift();
+  const rows = [];
+  let current = "";
+  let insideQuotes = false;
 
-    const entries = [];
+  for (let i = 0; i < cleanText.length; i++) {
+    const c = cleanText[i];
 
-    for (let index = 0; index < lines.length; index++) {
-      const line = lines[index];
+    if (c === '"') {
+      insideQuotes = !insideQuotes;
+      current += c;
+      continue;
+    }
 
-      const parts = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+    if (c === "\n" && !insideQuotes) {
+      rows.push(current);
+      current = "";
+      continue;
+    }
 
-      if (!parts || parts.length < 3) {
-        console.warn("Skipping bad CSV line", index + 2, line);
+    current += c;
+  }
+  if (current.trim().length > 0) rows.push(current);
+
+  rows.shift(); // remove header
+
+  const entries = rows.map((row, index) => {
+    const cols = [];
+    let col = "";
+    let q = false;
+
+    for (let i = 0; i < row.length; i++) {
+      const c = row[i];
+
+      if (c === '"') {
+        q = !q;
         continue;
       }
 
-      const title = parts[0].replace(/^"|"$/g, "");
-      const description = parts[1].replace(/^"|"$/g, "");
-      const url = parts[2].replace(/^"|"$/g, "");
+      if (c === "," && !q) {
+        cols.push(col.trim());
+        col = "";
+        continue;
+      }
 
-      entries.push({
-        id: entries.length,
-        name: title,
-        description: description,
-        youtube: url,
-        status: "none"
-      });
+      col += c;
     }
+    cols.push(col.trim());
 
-    console.log("Loaded entries:", entries.length);
-    initBracket(entries);
-  }
+    const title = cols[0] || "Unknown";
+    const description = cols[1] || "";
+    const url = cols.slice(2).join("").trim(); // merge duplicate URLs
+
+    return {
+      id: index,
+      name: title,
+      description: description,
+      youtube: url,
+      status: "none"
+    };
+  });
+
+  console.log("Loaded entries:", entries.length);
+  initBracket(entries);
+}
+
 
   loadData();
 </script>
