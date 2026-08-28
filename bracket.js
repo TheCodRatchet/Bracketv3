@@ -216,7 +216,7 @@ function toggleDetails(div, entry, arrow) {
   if (!entry.youtube) {
     details.innerHTML = `<p>${entry.description || ""}</p><p>No video.</p>`;
   } else {
-    const videoId = entry.youtube.split("v=")[1]?.split("&")[0];
+    const videoId = entry.youtube.split("v=")[1]?.split(/[&?]/)[0];
     details.innerHTML = `
       <p>${entry.description || ""}</p>
       <iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>
