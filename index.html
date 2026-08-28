@@ -31,7 +31,6 @@
 
       const parts = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
 
-      // Skip malformed lines
       if (!parts || parts.length < 3) {
         console.warn("Skipping bad CSV line", index + 2, line);
         continue;
@@ -56,8 +55,6 @@
 
   loadData();
 </script>
-
-
 
 </body>
 </html>
