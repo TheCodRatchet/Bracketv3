@@ -58,9 +58,14 @@ function setupResetButton() {
   document.getElementById("resetBtn").onclick = () => {
     localStorage.removeItem("tournamentState");
     CURRENT_ROUNDS = [];
+
+    // ⭐ FIX #5 — clear old bracket DOM
+    document.getElementById("bracket").innerHTML = "";
+
     startNewTournament(JSON.parse(JSON.stringify(ORIGINAL_ENTRIES)));
   };
 }
+
 
 function shuffle(arr) {
   let a = [...arr];
@@ -96,6 +101,12 @@ function renderBracket(rounds, bracketDiv) {
     const roundDiv = document.createElement("div");
     roundDiv.className = "round";
 
+     // ⭐ Add round title
+  const roundTitle = document.createElement("div");
+  roundTitle.className = "round-title";
+  roundTitle.textContent = `Round ${rIndex + 1}`;
+  roundDiv.appendChild(roundTitle);
+
     round.matches.forEach((match, mIndex) => {
       const matchDiv = document.createElement("div");
       matchDiv.className = "match";
@@ -126,11 +137,9 @@ function renderBracket(rounds, bracketDiv) {
         winner.status = "winner";
         loser.status = "loser";
 
-        const nextRound = rounds[rIndex].next;
-        if (nextRound[mIndex]) {
-          nextRound[mIndex] = JSON.parse(JSON.stringify(winner));
-          nextRound[mIndex].status = "none";
-          };
+        const nextRound = rounds[rIndex + 1]?.entries;
+        if (nextRound && nextRound[mIndex]) {
+        nextRound[mIndex] = { ...winner, status: "none" };
         }
 
         buildMatches(rounds);
@@ -141,6 +150,14 @@ function renderBracket(rounds, bracketDiv) {
       matchDiv.appendChild(btn);
       roundDiv.appendChild(matchDiv);
     });
+
+    // ⭐ FINAL ROUND CHECK — add winner box
+  if (round.entries.length === 1 && round.next.length === 0) {
+    const winnerDiv = document.createElement("div");
+    winnerDiv.className = "tournament-winner";
+    winnerDiv.textContent = `🏆 Winner: ${round.entries[0].name}`;
+    roundDiv.appendChild(winnerDiv);
+  }
 
     bracketDiv.appendChild(roundDiv);
   });
@@ -199,7 +216,7 @@ function toggleDetails(div, entry, arrow) {
   if (!entry.youtube) {
     details.innerHTML = `<p>${entry.description || ""}</p><p>No video.</p>`;
   } else {
-    const videoId = entry.youtube.split("v=")[1];
+    const videoId = entry.youtube.split("v=")[1]?.split("&")[0];
     details.innerHTML = `
       <p>${entry.description || ""}</p>
       <iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>
