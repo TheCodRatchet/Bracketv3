@@ -122,3 +122,12 @@ iframe {
 .reset-btn:hover {
   background: #c00;
 }
+
+.tournament-winner {
+  margin-top: 20px;
+  padding: 10px;
+  background: #0a0;
+  color: #fff;
+  font-weight: bold;
+  border-radius: 6px;
+}
