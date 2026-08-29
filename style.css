@@ -15,7 +15,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  position: relative;
 }
 
 .match {
@@ -24,43 +23,11 @@ body {
   border-radius: 6px;
   border: 1px solid #444;
   width: 220px;
-  position: relative;
 }
 
 .match-title {
   font-weight: bold;
   margin-bottom: 6px;
-}
-
-.match::after {
-  content: "";
-  position: absolute;
-  right: -20px;
-  top: 50%;
-  width: 20px;
-  height: 2px;
-  background: #888;
-}
-
-.next-match::before {
-  content: "";
-  position: absolute;
-  left: -20px;
-  top: 50%;
-  width: 20px;
-  height: 2px;
-  background: #888;
-}
-
-.next-match {
-  margin: auto 0; /* centers vertically */
-}
-
-.connector {
-  position: absolute;
-  left: -20px;
-  width: 2px;
-  background: #888;
 }
 
 .player {
@@ -164,4 +131,3 @@ iframe {
   font-weight: bold;
   border-radius: 6px;
 }
-
