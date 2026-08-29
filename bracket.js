@@ -111,6 +111,10 @@ function renderBracket(rounds, bracketDiv) {
       const matchDiv = document.createElement("div");
       matchDiv.className = "match";
 
+      if (rIndex > 0) {
+      matchDiv.classList.add("next-match");
+      }
+
       const title = document.createElement("div");
       title.className = "match-title";
       title.textContent = `Match ${globalMatchCounter++}`;
@@ -148,6 +152,24 @@ function renderBracket(rounds, bracketDiv) {
       };
 
       matchDiv.appendChild(btn);
+      
+      if (rIndex > 0) {
+      const connector = document.createElement("div");
+      connector.className = "connector";
+
+      const prevRound = rounds[rIndex - 1];
+      const topMatch = prevRound.matches[mIndex * 2];
+      const bottomMatch = prevRound.matches[mIndex * 2 + 1];
+
+      const topDiv = roundDiv.previousSibling.children[mIndex * 2];
+      const bottomDiv = roundDiv.previousSibling.children[mIndex * 2 + 1];
+
+      const topY = topDiv.offsetTop + topDiv.offsetHeight / 2;
+      const bottomY = bottomDiv.offsetTop + bottomDiv.offsetHeight / 2;
+
+      connector.style.top = `${topY}px`;
+      connector.style.height = `${bottomY - topY}px`;
+        
       roundDiv.appendChild(matchDiv);
     });
 
