@@ -58,10 +58,14 @@ function setupResetButton() {
   document.getElementById("resetBtn").onclick = () => {
     localStorage.removeItem("tournamentState");
     CURRENT_ROUNDS = [];
+
+    // ⭐ FIX #5 — clear old bracket DOM
     document.getElementById("bracket").innerHTML = "";
+
     startNewTournament(JSON.parse(JSON.stringify(ORIGINAL_ENTRIES)));
   };
 }
+
 
 function shuffle(arr) {
   let a = [...arr];
@@ -73,13 +77,14 @@ function shuffle(arr) {
 }
 
 function buildMatches(rounds) {
-  rounds.forEach((round) => {
+  rounds.forEach((round, rIndex) => {
     const list = round.entries;
     const matches = [];
 
     for (let i = 0; i < list.length; i += 2) {
       const p1 = list[i];
       const p2 = list[i + 1] || { id: null, name: "TBD", description: "", youtube: "", status: "none" };
+
       matches.push({ p1, p2 });
     }
 
@@ -91,24 +96,20 @@ function renderBracket(rounds, bracketDiv) {
   bracketDiv.innerHTML = "";
 
   let globalMatchCounter = 1;
-  const roundDivs = []; // store round DOMs
 
   rounds.forEach((round, rIndex) => {
     const roundDiv = document.createElement("div");
     roundDiv.className = "round";
 
-    const roundTitle = document.createElement("div");
-    roundTitle.className = "round-title";
-    roundTitle.textContent = `Round ${rIndex + 1}`;
-    roundDiv.appendChild(roundTitle);
+     // ⭐ Add round title
+  const roundTitle = document.createElement("div");
+  roundTitle.className = "round-title";
+  roundTitle.textContent = `Round ${rIndex + 1}`;
+  roundDiv.appendChild(roundTitle);
 
     round.matches.forEach((match, mIndex) => {
       const matchDiv = document.createElement("div");
       matchDiv.className = "match";
-
-      if (rIndex > 0) {
-        matchDiv.classList.add("next-match");
-      }
 
       const title = document.createElement("div");
       title.className = "match-title";
@@ -131,14 +132,14 @@ function renderBracket(rounds, bracketDiv) {
 
         const selectedSlot = selected.dataset.slot;
         const winner = selectedSlot === "p1" ? match.p1 : match.p2;
-        const loser = selectedSlot === "p1" ? match.p2 : match.p1;
+        const loser  = selectedSlot === "p1" ? match.p2 : match.p1;
 
         winner.status = "winner";
         loser.status = "loser";
 
         const nextRound = rounds[rIndex + 1]?.entries;
         if (nextRound && nextRound[mIndex]) {
-          nextRound[mIndex] = { ...winner, status: "none" };
+        nextRound[mIndex] = { ...winner, status: "none" };
         }
 
         buildMatches(rounds);
@@ -147,38 +148,18 @@ function renderBracket(rounds, bracketDiv) {
       };
 
       matchDiv.appendChild(btn);
-
-      // CONNECTOR LINES
-      if (rIndex > 0) {
-        const connector = document.createElement("div");
-        connector.className = "connector";
-
-        const prevRoundDiv = roundDivs[rIndex - 1];
-
-        const topDiv = prevRoundDiv.children[mIndex * 2 + 1];
-        const bottomDiv = prevRoundDiv.children[mIndex * 2 + 2];
-
-        const topY = topDiv.offsetTop + topDiv.offsetHeight / 2;
-        const bottomY = bottomDiv.offsetTop + bottomDiv.offsetHeight / 2;
-
-        connector.style.top = `${topY}px`;
-        connector.style.height = `${bottomY - topY}px`;
-
-        matchDiv.appendChild(connector);
-      }
-
       roundDiv.appendChild(matchDiv);
     });
 
-    if (round.entries.length === 1 && round.next.length === 0) {
-      const winnerDiv = document.createElement("div");
-      winnerDiv.className = "tournament-winner";
-      winnerDiv.textContent = `🏆 Winner: ${round.entries[0].name}`;
-      roundDiv.appendChild(winnerDiv);
-    }
+    // ⭐ FINAL ROUND CHECK — add winner box
+  if (round.entries.length === 1 && round.next.length === 0) {
+    const winnerDiv = document.createElement("div");
+    winnerDiv.className = "tournament-winner";
+    winnerDiv.textContent = `🏆 Winner: ${round.entries[0].name}`;
+    roundDiv.appendChild(winnerDiv);
+  }
 
     bracketDiv.appendChild(roundDiv);
-    roundDivs.push(roundDiv);
   });
 }
 
@@ -233,29 +214,36 @@ function toggleDetails(div, entry, arrow) {
   details.className = "entry-details";
 
   if (!entry.youtube) {
-    details.innerHTML = `<p>${entry.description || ""}</p><p>No video.</p>`;
-  } else {
-    let embedUrl = "";
+  details.innerHTML = `<p>${entry.description || ""}</p><p>No video.</p>`;
+} else {
 
-    if (entry.youtube.includes("youtube.com/watch")) {
-      const id = entry.youtube.split("v=")[1]?.split(/[&?]/)[0];
-      embedUrl = `https://www.youtube.com/embed/${id}`;
-    } else if (entry.youtube.includes("youtu.be/")) {
-      const id = entry.youtube.split("youtu.be/")[1]?.split(/[?&]/)[0];
-      embedUrl = `https://www.youtube.com/embed/${id}`;
-    } else {
-      embedUrl = null;
-    }
+  let embedUrl = "";
 
-    details.innerHTML = `
-      <p>${entry.description || ""}</p>
-      ${
-        embedUrl
-          ? `<iframe src="${embedUrl}" allowfullscreen></iframe>`
-          : `<p><a href="${entry.youtube}" target="_blank">${entry.youtube}</a></p>`
-      }
-    `;
+  if (entry.youtube.includes("youtube.com/watch")) {
+    // Standard YouTube link
+    const id = entry.youtube.split("v=")[1]?.split(/[&?]/)[0];
+    embedUrl = `https://www.youtube.com/embed/${id}`;
+  } 
+  else if (entry.youtube.includes("youtu.be/")) {
+    // Short youtu.be link
+    const id = entry.youtube.split("youtu.be/")[1]?.split(/[?&]/)[0];
+    embedUrl = `https://www.youtube.com/embed/${id}`;
+  } 
+  else {
+    // Fallback: show raw link
+    embedUrl = null;
   }
+
+  details.innerHTML = `
+    <p>${entry.description || ""}</p>
+    ${
+      embedUrl
+        ? `<iframe src="${embedUrl}" allowfullscreen></iframe>`
+        : `<p><a href="${entry.youtube}" target="_blank">${entry.youtube}</a></p>`
+    }
+  `;
+}
+
 
   div.appendChild(details);
 }
