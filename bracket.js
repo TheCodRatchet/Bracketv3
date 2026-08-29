@@ -1,6 +1,17 @@
 let ORIGINAL_ENTRIES = [];
 let CURRENT_ROUNDS = [];
 
+const ROUND_NAMES = [
+  "Round of 256",
+  "Round of 128",
+  "Round of 64",
+  "Round of 32",
+  "Round of 16",
+  "Quarterfinals",
+  "Semifinals",
+  "Final"
+];
+
 function initBracket(entries) {
   ORIGINAL_ENTRIES = JSON.parse(JSON.stringify(entries));
 
@@ -8,11 +19,9 @@ function initBracket(entries) {
 
   if (saved) {
     CURRENT_ROUNDS = JSON.parse(saved);
-
     buildMatches(CURRENT_ROUNDS);
     const bracketDiv = document.getElementById("bracket");
     renderBracket(CURRENT_ROUNDS, bracketDiv);
-
     setupResetButton();
     return;
   }
@@ -32,9 +41,16 @@ function startNewTournament(entries) {
   const rounds = [];
   let current = shuffled;
 
-  while (current.length > 1) {
-    const nextRound = new Array(Math.ceil(current.length / 2)).fill(null)
-      .map((_, idx) => ({ id: -idx - 1, name: "TBD", description: "", youtube: "", status: "none" }));
+  while (current.length > 2) {
+    const nextRoundSize = Math.ceil(current.length / 2);
+
+    const nextRound = new Array(nextRoundSize).fill(null).map((_, idx) => ({
+      id: -idx - 1,
+      name: "TBD",
+      description: "",
+      youtube: "",
+      status: "none"
+    }));
 
     rounds.push({ entries: current, next: nextRound });
     current = nextRound;
@@ -58,14 +74,10 @@ function setupResetButton() {
   document.getElementById("resetBtn").onclick = () => {
     localStorage.removeItem("tournamentState");
     CURRENT_ROUNDS = [];
-
-    // ⭐ FIX #5 — clear old bracket DOM
     document.getElementById("bracket").innerHTML = "";
-
     startNewTournament(JSON.parse(JSON.stringify(ORIGINAL_ENTRIES)));
   };
 }
-
 
 function shuffle(arr) {
   let a = [...arr];
@@ -77,13 +89,19 @@ function shuffle(arr) {
 }
 
 function buildMatches(rounds) {
-  rounds.forEach((round, rIndex) => {
+  rounds.forEach((round) => {
     const list = round.entries;
     const matches = [];
 
     for (let i = 0; i < list.length; i += 2) {
       const p1 = list[i];
-      const p2 = list[i + 1] || { id: null, name: "TBD", description: "", youtube: "", status: "none" };
+      const p2 = list[i + 1] || {
+        id: null,
+        name: "TBD",
+        description: "",
+        youtube: "",
+        status: "none"
+      };
 
       matches.push({ p1, p2 });
     }
@@ -101,11 +119,10 @@ function renderBracket(rounds, bracketDiv) {
     const roundDiv = document.createElement("div");
     roundDiv.className = "round";
 
-     // ⭐ Add round title
-  const roundTitle = document.createElement("div");
-  roundTitle.className = "round-title";
-  roundTitle.textContent = `Round ${rIndex + 1}`;
-  roundDiv.appendChild(roundTitle);
+    const roundTitle = document.createElement("div");
+    roundTitle.className = "round-title";
+    roundTitle.textContent = ROUND_NAMES[rIndex];
+    roundDiv.appendChild(roundTitle);
 
     round.matches.forEach((match, mIndex) => {
       const matchDiv = document.createElement("div");
@@ -132,14 +149,14 @@ function renderBracket(rounds, bracketDiv) {
 
         const selectedSlot = selected.dataset.slot;
         const winner = selectedSlot === "p1" ? match.p1 : match.p2;
-        const loser  = selectedSlot === "p1" ? match.p2 : match.p1;
+        const loser = selectedSlot === "p1" ? match.p2 : match.p1;
 
         winner.status = "winner";
         loser.status = "loser";
 
         const nextRound = rounds[rIndex + 1]?.entries;
         if (nextRound && nextRound[mIndex]) {
-        nextRound[mIndex] = { ...winner, status: "none" };
+          nextRound[mIndex] = { ...winner, status: "none" };
         }
 
         buildMatches(rounds);
@@ -151,16 +168,28 @@ function renderBracket(rounds, bracketDiv) {
       roundDiv.appendChild(matchDiv);
     });
 
-    // ⭐ FINAL ROUND CHECK — add winner box
-  if (round.entries.length === 1 && round.next.length === 0) {
-    const winnerDiv = document.createElement("div");
-    winnerDiv.className = "tournament-winner";
-    winnerDiv.textContent = `🏆 Winner: ${round.entries[0].name}`;
-    roundDiv.appendChild(winnerDiv);
-  }
-
     bracketDiv.appendChild(roundDiv);
   });
+
+  const finalRound = rounds[rounds.length - 1];
+  const winnerEntry = finalRound.entries.find(e => e.status === "winner");
+
+  const winnerRoundDiv = document.createElement("div");
+  winnerRoundDiv.className = "round";
+
+  const winnerTitle = document.createElement("div");
+  winnerTitle.className = "round-title";
+  winnerTitle.textContent = "Winner";
+  winnerRoundDiv.appendChild(winnerTitle);
+
+  if (winnerEntry) {
+    const winnerDiv = document.createElement("div");
+    winnerDiv.className = "player winner";
+    winnerDiv.textContent = winnerEntry.name;
+    winnerRoundDiv.appendChild(winnerDiv);
+  }
+
+  bracketDiv.appendChild(winnerRoundDiv);
 }
 
 function createPlayerDiv(entry, matchDiv, slot) {
@@ -213,37 +242,35 @@ function toggleDetails(div, entry, arrow) {
   const details = document.createElement("div");
   details.className = "entry-details";
 
+  const descLines = (entry.description || "")
+    .split("\n")
+    .map(line => `<p>${line}</p>`)
+    .join("");
+
   if (!entry.youtube) {
-  details.innerHTML = `<p>${entry.description || ""}</p><p>No video.</p>`;
-} else {
+    details.innerHTML = `${descLines}<p>No video.</p>`;
+  } else {
+    let embedUrl = "";
 
-  let embedUrl = "";
-
-  if (entry.youtube.includes("youtube.com/watch")) {
-    // Standard YouTube link
-    const id = entry.youtube.split("v=")[1]?.split(/[&?]/)[0];
-    embedUrl = `https://www.youtube.com/embed/${id}`;
-  } 
-  else if (entry.youtube.includes("youtu.be/")) {
-    // Short youtu.be link
-    const id = entry.youtube.split("youtu.be/")[1]?.split(/[?&]/)[0];
-    embedUrl = `https://www.youtube.com/embed/${id}`;
-  } 
-  else {
-    // Fallback: show raw link
-    embedUrl = null;
-  }
-
-  details.innerHTML = `
-    <p>${entry.description || ""}</p>
-    ${
-      embedUrl
-        ? `<iframe src="${embedUrl}" allowfullscreen></iframe>`
-        : `<p><a href="${entry.youtube}" target="_blank">${entry.youtube}</a></p>`
+    if (entry.youtube.includes("youtube.com/watch")) {
+      const id = entry.youtube.split("v=")[1]?.split(/[&?]/)[0];
+      embedUrl = `https://www.youtube.com/embed/${id}`;
+    } else if (entry.youtube.includes("youtu.be/")) {
+      const id = entry.youtube.split("youtu.be/")[1]?.split(/[?&]/)[0];
+      embedUrl = `https://www.youtube.com/embed/${id}`;
+    } else {
+      embedUrl = null;
     }
-  `;
-}
 
+    details.innerHTML = `
+      ${descLines}
+      ${
+        embedUrl
+          ? `<iframe src="${embedUrl}" allowfullscreen></iframe>`
+          : `<p><a href="${entry.youtube}" target="_blank">${entry.youtube}</a></p>`
+      }
+    `;
+  }
 
   div.appendChild(details);
 }
