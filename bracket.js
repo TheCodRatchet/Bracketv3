@@ -91,6 +91,7 @@ function renderBracket(rounds, bracketDiv) {
   bracketDiv.innerHTML = "";
 
   let globalMatchCounter = 1;
+  const roundDivs = []; // store round DOMs
 
   rounds.forEach((round, rIndex) => {
     const roundDiv = document.createElement("div");
@@ -152,7 +153,7 @@ function renderBracket(rounds, bracketDiv) {
         const connector = document.createElement("div");
         connector.className = "connector";
 
-        const prevRoundDiv = bracketDiv.children[rIndex - 1];
+        const prevRoundDiv = roundDivs[rIndex - 1];
 
         const topDiv = prevRoundDiv.children[mIndex * 2 + 1];
         const bottomDiv = prevRoundDiv.children[mIndex * 2 + 2];
@@ -177,6 +178,7 @@ function renderBracket(rounds, bracketDiv) {
     }
 
     bracketDiv.appendChild(roundDiv);
+    roundDivs.push(roundDiv);
   });
 }
 
