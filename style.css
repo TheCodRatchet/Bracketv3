@@ -17,6 +17,12 @@ body {
   gap: 20px;
 }
 
+.round-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
 .match {
   background: #222;
   padding: 10px;
@@ -71,7 +77,7 @@ body {
   position: absolute;
   left: 0;
   top: 100%;
-  width: 1600px;          /* Huge horizontal size */
+  width: 1600px;
   background: #000;
   padding: 24px;
   border-radius: 12px;
@@ -82,7 +88,7 @@ body {
 
 .entry-details iframe {
   width: 1600px !important;
-  height: 900px !important;    /* perfect 16:9 */
+  height: 900px !important;
   max-width: 100%;
   display: block;
   border: none;
@@ -109,6 +115,7 @@ iframe {
 .advance-btn:hover {
   background: #777;
 }
+
 .reset-btn {
   padding: 10px 20px;
   background: #a00;
@@ -121,13 +128,4 @@ iframe {
 
 .reset-btn:hover {
   background: #c00;
-}
-
-.tournament-winner {
-  margin-top: 20px;
-  padding: 10px;
-  background: #0a0;
-  color: #fff;
-  font-weight: bold;
-  border-radius: 6px;
 }
