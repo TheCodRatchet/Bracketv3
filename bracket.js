@@ -33,7 +33,7 @@ function startNewTournament(entries) {
   const bracketDiv = document.getElementById("bracket");
 
   const shuffled = shuffle(entries.map(e => ({
-    ...e,              // 🔥 keep CSV id
+    ...e,
     status: "none"
   })));
 
@@ -142,7 +142,19 @@ function renderBracket(rounds, bracketDiv) {
       btn.className = "advance-btn";
       btn.textContent = "Advance Winner";
 
+      // 🔒 Disable button if match already decided
+      if (match.p1.status !== "none" || match.p2.status !== "none") {
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+        btn.style.cursor = "not-allowed";
+      }
+
       btn.onclick = () => {
+        // 🔒 Prevent re-choosing winner
+        if (match.p1.status !== "none" || match.p2.status !== "none") {
+          return;
+        }
+
         const selected = matchDiv.querySelector(".player.selected");
         if (!selected) return;
 
@@ -190,7 +202,7 @@ function renderBracket(rounds, bracketDiv) {
     winnerDiv.appendChild(title);
 
     const img = document.createElement("img");
-    img.src = `${winnerEntry.id}.jpg`;   // 🔥 main folder
+    img.src = `${winnerEntry.id}.jpg`;
     img.className = "entry-image";
     winnerDiv.appendChild(img);
 
@@ -209,7 +221,7 @@ function createPlayerDiv(entry, matchDiv, slot) {
   div.appendChild(title);
 
   const img = document.createElement("img");
-  img.src = `${entry.id}.jpg`;          // 🔥 main folder, matches CSV id
+  img.src = `${entry.id}.jpg`;
   img.className = "entry-image";
   div.appendChild(img);
 
@@ -234,6 +246,12 @@ function createPlayerDiv(entry, matchDiv, slot) {
 
   div.onclick = (e) => {
     e.stopPropagation();
+
+    // 🔒 Prevent selecting players after match is decided
+    if (entry.status === "winner" || entry.status === "loser") {
+      return;
+    }
+
     matchDiv.querySelectorAll(".player").forEach(p => p.classList.remove("selected"));
     div.classList.add("selected");
   };
