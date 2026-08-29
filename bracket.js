@@ -108,70 +108,72 @@ function renderBracket(rounds, bracketDiv) {
   roundDiv.appendChild(roundTitle);
 
     round.matches.forEach((match, mIndex) => {
-      const matchDiv = document.createElement("div");
-      matchDiv.className = "match";
+  const matchDiv = document.createElement("div");
+  matchDiv.className = "match";
 
-      if (rIndex > 0) {
-      matchDiv.classList.add("next-match");
-      }
+  if (rIndex > 0) {
+    matchDiv.classList.add("next-match");
+  }
 
-      const title = document.createElement("div");
-      title.className = "match-title";
-      title.textContent = `Match ${globalMatchCounter++}`;
-      matchDiv.appendChild(title);
+  const title = document.createElement("div");
+  title.className = "match-title";
+  title.textContent = `Match ${globalMatchCounter++}`;
+  matchDiv.appendChild(title);
 
-      const p1Div = createPlayerDiv(match.p1, matchDiv, "p1");
-      const p2Div = createPlayerDiv(match.p2, matchDiv, "p2");
+  const p1Div = createPlayerDiv(match.p1, matchDiv, "p1");
+  const p2Div = createPlayerDiv(match.p2, matchDiv, "p2");
 
-      matchDiv.appendChild(p1Div);
-      matchDiv.appendChild(p2Div);
+  matchDiv.appendChild(p1Div);
+  matchDiv.appendChild(p2Div);
 
-      const btn = document.createElement("button");
-      btn.className = "advance-btn";
-      btn.textContent = "Advance Winner";
+  const btn = document.createElement("button");
+  btn.className = "advance-btn";
+  btn.textContent = "Advance Winner";
 
-      btn.onclick = () => {
-        const selected = matchDiv.querySelector(".player.selected");
-        if (!selected) return;
+  btn.onclick = () => {
+    const selected = matchDiv.querySelector(".player.selected");
+    if (!selected) return;
 
-        const selectedSlot = selected.dataset.slot;
-        const winner = selectedSlot === "p1" ? match.p1 : match.p2;
-        const loser  = selectedSlot === "p1" ? match.p2 : match.p1;
+    const selectedSlot = selected.dataset.slot;
+    const winner = selectedSlot === "p1" ? match.p1 : match.p2;
+    const loser  = selectedSlot === "p1" ? match.p2 : match.p1;
 
-        winner.status = "winner";
-        loser.status = "loser";
+    winner.status = "winner";
+    loser.status = "loser";
 
-        const nextRound = rounds[rIndex + 1]?.entries;
-        if (nextRound && nextRound[mIndex]) {
-        nextRound[mIndex] = { ...winner, status: "none" };
-        }
+    const nextRound = rounds[rIndex + 1]?.entries;
+    if (nextRound && nextRound[mIndex]) {
+      nextRound[mIndex] = { ...winner, status: "none" };
+    }
 
-        buildMatches(rounds);
-        renderBracket(rounds, bracketDiv);
-        saveTournament();
-      };
+    buildMatches(rounds);
+    renderBracket(rounds, bracketDiv);
+    saveTournament();
+  };
 
-      matchDiv.appendChild(btn);
-      
-      if (rIndex > 0) {
-      const connector = document.createElement("div");
-      connector.className = "connector";
+  matchDiv.appendChild(btn);
 
-      const prevRound = rounds[rIndex - 1];
-      const topMatch = prevRound.matches[mIndex * 2];
-      const bottomMatch = prevRound.matches[mIndex * 2 + 1];
+  // ⭐ CONNECTOR LINES
+  if (rIndex > 0) {
+    const connector = document.createElement("div");
+    connector.className = "connector";
 
-      const topDiv = roundDiv.previousSibling.children[mIndex * 2];
-      const bottomDiv = roundDiv.previousSibling.children[mIndex * 2 + 1];
+    const prevRoundDiv = bracketDiv.children[rIndex - 1];
+    const topDiv = prevRoundDiv.children[mIndex * 2 + 1];   // +1 because round-title is index 0
+    const bottomDiv = prevRoundDiv.children[mIndex * 2 + 2];
 
-      const topY = topDiv.offsetTop + topDiv.offsetHeight / 2;
-      const bottomY = bottomDiv.offsetTop + bottomDiv.offsetHeight / 2;
+    const topY = topDiv.offsetTop + topDiv.offsetHeight / 2;
+    const bottomY = bottomDiv.offsetTop + bottomDiv.offsetHeight / 2;
 
-      connector.style.top = `${topY}px`;
-      connector.style.height = `${bottomY - topY}px`;
-        
-      roundDiv.appendChild(matchDiv);
-    });
+    connector.style.top = `${topY}px`;
+    connector.style.height = `${bottomY - topY}px`;
+
+    matchDiv.appendChild(connector);
+  }
+
+  roundDiv.appendChild(matchDiv);
+});
+
 
     // ⭐ FINAL ROUND CHECK — add winner box
   if (round.entries.length === 1 && round.next.length === 0) {
